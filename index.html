@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador TEMA AES — Intercambiador de Tubo y Coraza (Método de Kern)</title>
+
+  <!-- Tailwind CSS compilado estáticamente (sin CDN — apto para producción/GitHub Pages) -->
+  <link rel="stylesheet" href="css/tailwind.css" />
+
+  <!-- Chart.js (vendorizado, global) -->
+  <script src="assets/vendor/chart.umd.js"></script>
+
+  <!-- GSAP (vendorizado, global) -->
+  <script src="assets/vendor/gsap.min.js"></script>
+
+  <!-- Three.js como módulos ES vendorizados (import map con rutas relativas) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./assets/vendor/three.module.js",
+        "three/addons/": "./assets/vendor/jsm/"
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+
+<body class="h-full bg-slate-950 text-slate-100 font-sans">
+  <!-- ======================= ENCABEZADO ======================= -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-[1800px] mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-sky-500 grid place-items-center font-bold text-slate-950">AES</div>
+        <div>
+          <h1 class="text-base sm:text-lg font-semibold leading-tight">Simulador de Intercambiador de Calor — TEMA Tipo AES</h1>
+          <p class="text-xs text-slate-400">Método de Kern · Validado contra el proyecto gasolina–kerosene (U. del Atlántico)</p>
+        </div>
+      </div>
+      <div class="ms-auto flex items-center gap-2">
+        <button id="btn-load-case" class="btn-secondary" title="Cargar el caso del trabajo escrito">Caso de validación</button>
+        <button id="btn-validate" class="btn-secondary">Verificar validación</button>
+        <button id="btn-calc" class="btn-primary">Calcular ▶</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================= CUERPO: 3 PANELES ======================= -->
+  <main class="max-w-[1800px] mx-auto p-4 grid gap-4
+               grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)_380px]">
+
+    <!-- ---------- IZQUIERDA: ENTRADAS ---------- -->
+    <aside id="panel-inputs" class="space-y-4 lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto pr-1">
+      <section class="card">
+        <h2 class="card-title">Fluido caliente <span class="badge badge-hot">carcasa u tubos</span></h2>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="field col-span-2">Fluido
+            <select id="hot-preset" class="input"></select>
+          </label>
+          <label class="field">T entrada (°F)<input id="hot-tin" type="number" step="any" class="input" /></label>
+          <label class="field">T salida (°F)<input id="hot-tout" type="number" step="any" class="input" /></label>
+          <label class="field col-span-2">Caudal (lb/h) <span class="hint">vacío = por balance</span>
+            <input id="hot-flow" type="number" step="any" class="input" placeholder="calculado" /></label>
+          <label class="field">Cp (Btu/lb·°F)<input id="hot-cp" type="number" step="any" class="input" /></label>
+          <label class="field">μ (cP)<input id="hot-mu" type="number" step="any" class="input" /></label>
+          <label class="field">k (Btu/h·ft·°F)<input id="hot-k" type="number" step="any" class="input" /></label>
+          <label class="field">Grav. esp. s<input id="hot-sg" type="number" step="any" class="input" /></label>
+          <label class="field">Pr<input id="hot-pr" type="number" step="any" class="input" /></label>
+          <label class="field">Rd (h·ft²·°F/Btu)<input id="hot-rd" type="number" step="any" class="input" /></label>
+          <label class="field col-span-2">ΔP máx (psi)<input id="hot-dpmax" type="number" step="any" class="input" /></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Fluido frío <span class="badge badge-cold">carcasa u tubos</span></h2>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="field col-span-2">Fluido
+            <select id="cold-preset" class="input"></select>
+          </label>
+          <label class="field">T entrada (°F)<input id="cold-tin" type="number" step="any" class="input" /></label>
+          <label class="field">T salida (°F)<input id="cold-tout" type="number" step="any" class="input" /></label>
+          <label class="field col-span-2">Caudal (lb/h) <span class="hint">vacío = por balance</span>
+            <input id="cold-flow" type="number" step="any" class="input" placeholder="calculado" /></label>
+          <label class="field">Cp (Btu/lb·°F)<input id="cold-cp" type="number" step="any" class="input" /></label>
+          <label class="field">μ (cP)<input id="cold-mu" type="number" step="any" class="input" /></label>
+          <label class="field">k (Btu/h·ft·°F)<input id="cold-k" type="number" step="any" class="input" /></label>
+          <label class="field">Grav. esp. s<input id="cold-sg" type="number" step="any" class="input" /></label>
+          <label class="field">Pr<input id="cold-pr" type="number" step="any" class="input" /></label>
+          <label class="field">Rd (h·ft²·°F/Btu)<input id="cold-rd" type="number" step="any" class="input" /></label>
+          <label class="field col-span-2">ΔP máx (psi)<input id="cold-dpmax" type="number" step="any" class="input" /></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Asignación de corrientes</h2>
+        <label class="field">Fluido por los tubos
+          <select id="tube-side" class="input">
+            <option value="cold">Fluido frío por tubos (caso base)</option>
+            <option value="hot">Fluido caliente por tubos</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Geometría — TEMA AES</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="field">DE tubo (in)
+            <select id="geo-od" class="input">
+              <option value="0.75">3/4</option><option value="1">1</option>
+            </select></label>
+          <label class="field">BWG<select id="geo-bwg" class="input"></select></label>
+          <label class="field">Longitud L (ft)<input id="geo-len" type="number" step="any" class="input" /></label>
+          <label class="field">Pasos por tubos n
+            <select id="geo-passes" class="input">
+              <option>1</option><option>2</option><option>4</option><option selected>6</option><option>8</option>
+            </select></label>
+          <label class="field">Arreglo
+            <select id="geo-layout" class="input">
+              <option value="triangular">Triangular</option>
+              <option value="square">Cuadrado</option>
+            </select></label>
+          <label class="field">Paso Pt (in)<input id="geo-pitch" type="number" step="any" class="input" /></label>
+          <label class="field">Ds carcasa (in)<input id="geo-ds" type="number" step="any" class="input" /></label>
+          <label class="field">Nº tubos Nt <span class="hint">Tabla 9</span>
+            <input id="geo-nt" type="number" step="1" class="input" /></label>
+          <label class="field col-span-2">Espaciado deflectores B (in)
+            <input id="geo-baffle" type="number" step="any" class="input" /></label>
+        </div>
+        <p id="baffle-warn" class="hidden text-amber-400 text-xs mt-2"></p>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Factores de fricción (cartas de Kern)</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="field">f tubos (Fig. 26) <span class="hint">vacío = ajuste automático</span>
+            <input id="f-tube" type="number" step="any" class="input" placeholder="auto" /></label>
+          <label class="field">f coraza (Fig. 29) <span class="hint">vacío = ajuste automático</span>
+            <input id="f-shell" type="number" step="any" class="input" placeholder="auto" /></label>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Para reproducir el trabajo escrito: 0.00023 y 0.00165 (lecturas gráficas de la fuente prioritaria).</p>
+      </section>
+    </aside>
+
+    <!-- ---------- CENTRO: MODELO 3D ---------- -->
+    <section class="flex flex-col gap-3 min-h-[480px]">
+      <div class="card flex flex-wrap items-center gap-2 py-2">
+        <span class="text-xs uppercase tracking-wider text-slate-400 me-2">Modelo 3D</span>
+        <button id="btn-view-full" class="btn-toggle active">Vista completa</button>
+        <button id="btn-view-cut" class="btn-toggle">Corte longitudinal</button>
+        <span class="mx-2 h-5 w-px bg-slate-700"></span>
+        <label class="chk"><input id="tgl-shell" type="checkbox" checked /> Carcasa</label>
+        <label class="chk"><input id="tgl-tubes" type="checkbox" checked /> Tubos</label>
+        <label class="chk"><input id="tgl-baffles" type="checkbox" checked /> Deflectores</label>
+        <label class="chk"><input id="tgl-flow" type="checkbox" checked /> Flujo</label>
+      </div>
+      <div id="viewport" class="relative flex-1 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 min-h-[420px]">
+        <div id="legend3d" class="absolute bottom-3 left-3 z-10 text-xs bg-slate-950/70 rounded-lg px-3 py-2 space-y-1">
+          <div><span class="dot" style="background:linear-gradient(90deg,#f97316,#fde047)"></span> Fluido caliente (se enfría)</div>
+          <div><span class="dot" style="background:linear-gradient(90deg,#38bdf8,#f97316)"></span> Fluido frío (se calienta)</div>
+          <div class="text-slate-400">Arrastrar: rotar · Rueda: zoom · Botón der.: desplazar</div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+        <div class="card"><h3 class="card-title">Perfil de temperatura vs longitud</h3><canvas id="chart-temp" height="190"></canvas></div>
+        <div class="card"><h3 class="card-title">Caídas de presión vs límites</h3><canvas id="chart-dp" height="190"></canvas></div>
+        <div class="card"><h3 class="card-title">Resistencias y coeficientes (h, U)</h3><canvas id="chart-u" height="190"></canvas></div>
+        <div class="card"><h3 class="card-title">Área instalada vs requerida</h3><canvas id="chart-area" height="190"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ---------- DERECHA: RESULTADOS ---------- -->
+    <aside class="space-y-4 lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto pr-1">
+      <section class="card">
+        <h2 class="card-title">Veredictos de diseño</h2>
+        <div id="verdicts" class="grid grid-cols-1 gap-1.5 text-sm"></div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Resultados <span class="hint">clic en cada fila = trazabilidad</span></h2>
+        <div id="results" class="space-y-1"></div>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Propiedades y fuentes</h2>
+        <div id="properties" class="space-y-2 text-xs"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Modal de validación -->
+  <div id="modal-validate" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="max-w-3xl mx-auto card my-8">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="card-title mb-0">Validación contra la fuente prioritaria</h2>
+        <button id="modal-close" class="btn-secondary">Cerrar ✕</button>
+      </div>
+      <div id="validate-body" class="text-sm"></div>
+    </div>
+  </div>
+
+  <footer class="max-w-[1800px] mx-auto px-4 pb-6 text-xs text-slate-500">
+    Motor de cálculo: método de Kern (Ecs. 5.14, 6.5, 6.13, 6.15a/b, 6.38, 7.1–7.48) ·
+    Base de conocimiento y discrepancias documentadas (§7.1–§7.9) en el repositorio ·
+    Representación 3D esquemática (longitud comprimida para visualización).
+  </footer>
+
+  <!-- Punto de entrada (módulos ES) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

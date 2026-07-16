@@ -1,0 +1,7 @@
+/* styles.css — reglas base globales (SRP: solo estilos base/tipografía/scroll) */
+html { color-scheme: dark; }
+body { font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+canvas { max-width: 100%; }

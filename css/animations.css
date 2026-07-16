@@ -1,0 +1,5 @@
+/* animations.css — animaciones CSS declarativas (GSAP maneja las de JS) */
+@keyframes pulse-soft { 0%,100%{opacity:1} 50%{opacity:.55} }
+.pulsing { animation: pulse-soft 1.6s ease-in-out infinite; }
+.fade-in { animation: fadein .4s ease both; }
+@keyframes fadein { from { opacity:0; transform: translateY(4px);} to {opacity:1; transform:none;} }
