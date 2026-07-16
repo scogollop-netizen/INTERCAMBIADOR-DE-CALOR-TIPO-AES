@@ -5,20 +5,6 @@ tubo y coraza **TEMA tipo AES**, con motor de cálculo validado contra el trabaj
 escrito *"Diseño de un intercambiador de calor de carcasa y tubos gasolina–kerosene"*
 (Universidad del Atlántico, Transferencia de Calor II).
 
-## ▶ Despliegue en GitHub Pages (3 pasos)
-
-1. Crear un repositorio en GitHub y subir **todo el contenido de esta carpeta**
-   (el `.gitignore` ya excluye `node_modules/`, que no se necesita en producción:
-   las librerías ya están vendorizadas en `assets/vendor/` y Tailwind está
-   compilado en `css/tailwind.css`).
-2. En el repositorio: *Settings → Pages → Source: Deploy from a branch →
-   Branch: `main` / carpeta `/ (root)` → Save*.
-3. Abrir `https://<usuario>.github.io/<repositorio>/`. Listo — no hay build,
-   no hay CDN, no hay dependencias externas en tiempo de ejecución.
-
-Para ejecutarlo localmente: `python3 -m http.server` (o cualquier servidor
-estático) y abrir `http://localhost:8000` (los módulos ES requieren servidor,
-no `file://`).
 
 ## Qué hace
 
